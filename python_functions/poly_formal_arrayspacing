@@ -1,0 +1,13 @@
+#! /usr/bin/python
+
+rect_spc_x=0.001;
+rect_spc_y=0.001;
+
+rect_array_x = np.zeros(54)
+rect_array_y = np.zeros(54)
+
+for ix in range(54):
+    rect_array_x[ix]=(rect_spc_x*(ix+1))/2
+
+for iy in range(54):
+    rect_array_y[iy]=(rect_spc_y*(iy+1))/2

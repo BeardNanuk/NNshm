@@ -1,0 +1,35 @@
+#! /usr/bin/python
+
+def implt(image):
+    plt.imshow(ndimage.rotate(image,90))
+    plt.show()
+
+
+def implt2(Y_train,Y_recovered,index):
+    #gs = gridspec.GridSpec(1,2, height_ratios=[1,1])
+    #fig = plt.figure()
+    plt.figure(figsize=(12, 7))
+    ax1 = plt.subplot(121)
+    ax1.imshow(ndimage.rotate(Y_train[index,:].reshape(401,401),90))
+    plt.title("Original", fontsize=16)
+
+    ax2 = plt.subplot(122)
+    ax2.imshow(ndimage.rotate(Y_recovered[index,:].reshape(401,401),90))
+    plt.title("Compressed", fontsize=16)
+
+    plt.show()
+
+def implt3(Y_train,Y_recovered,idx,idy):
+    #gs = gridspec.GridSpec(1,2, height_ratios=[1,1])
+    #fig = plt.figure()
+    index=dfX.index[(dfX['x (mm)'] == idx) & (dfX['y (mm)'] == idy)]
+    plt.figure(figsize=(8, 5))
+    ax1 = plt.subplot(121)
+    ax1.imshow(ndimage.rotate(Y_train[index,:].reshape(401,401),90))
+    plt.title("Original", fontsize=16)
+
+    ax2 = plt.subplot(122)
+    ax2.imshow(ndimage.rotate(Y_recovered.reshape(401,401),90))
+    plt.title("Predicted", fontsize=16)
+     
+    plt.show()

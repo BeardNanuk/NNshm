@@ -1,0 +1,33 @@
+#! /usr/bin/python
+
+# import libraries 
+
+import numpy as np
+
+import pandas as pd
+import scipy
+
+#from scipy import ndimage
+
+#for making folders
+import os, errno
+import pandas as pd
+
+
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
+from scipy import ndimage
+
+# load, slice, and reshape 2D image into to 1D array 
+import sys
+sys.path.append('/home/j2/home/j2/ml/env/lib/python3.5/site-packages')
+from numpy import unravel_index
+
+import cv2
+import argparse
+
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn import datasets
+from sklearn import svm
+from sklearn.model_selection import ShuffleSplit

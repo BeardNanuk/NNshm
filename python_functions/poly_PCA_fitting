@@ -7,8 +7,7 @@ from sklearn.preprocessing import PolynomialFeatures
 
 
 # select the first three attributes of the thresholded image: area, width, length 
-output_matrix.Y3 = output_matrix.Y[:,para.feature_star:para.feature_end]
-
+output_matrix.Y3 = output_matrix.Y_reduced
 
 # backup X, Y3; just in case!
 output_matrix.Xtemp = output_matrix.X
@@ -18,7 +17,19 @@ output_matrix.Y3temp = output_matrix.Y3
 poly = PolynomialFeatures(degree=para.numberFeature)
 Xpoly = poly.fit_transform(output_matrix.X)
 
-rs_end = 42
+
+# seed number for random state 
+if flag.random_state_iteration == 1:
+    rs_start = 0 
+    rs_end = 43
+    random_range = range(rs_start,rs_end)
+elif flag.random_state_iteration == 2:
+    randome_state_temp = 0
+    rs_start = randome_state_temp
+    rs_end = rs_start + 1
+    random_range = range(rs_start,rs_end)
+
+
 cvscoremeanlist = np.zeros(1)
 
 
@@ -36,20 +47,17 @@ def NNpredcheck(x,y,model):
 
 ######## with open(outputfilename, "w") as f:
 ########     f.write(' ')
-            # para.TEST_SIZE = 0.1
+para.TEST_SIZE = 0.1
 
-if flag.data_spit==1:
+if flag.data_spit == 1:
     # just extract the slip dimensions
     X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, output_matrix.Y3, test_size=para.TEST_SIZE, random_state=0)
-elif flag.data_spit ==2: 
+    predict3D = np.zeros(Y3_test.shape)
+
+elif flag.data_spit == 2: # whether to split data
     X_train = Xpoly
-    Y3_train = output_matrix.Y3
-    X_test = 
-
-
-
-predict3D = np.zeros(Y3_test.shape)
-
+    Y3_train =  output_matrix.Y3
+    predict3D = np.zeros(Y3_test.shape)    
 
 
 
@@ -62,7 +70,7 @@ para.fixed_folder_performance_png = para.rootoutdir +  para.fixed_folder_name + 
 
 para.each_folder_flag_png = para.dir_each_folder_name + '/flag'+ para.each_folder_name + '.png'
 
-### output files into pictures or PPT slides - first slide
+### output files into pictures or PPT slides
  
 prs = Presentation()
 title_slide_layout = prs.slide_layouts[0]
@@ -70,16 +78,14 @@ slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
 
-title.text = "Machine learning for damage width and length - polynomial feature selection"
+title.text = "Machine learning for damage width and length to PCA prediction"
 subtitle.text = para.each_folder_name
 
 prs.save(para.total_filename_pptx)
 
 
 
-for random_statevalue in range(41,42): 
-
-# for random_statevalue in range(rs_end): 
+for random_statevalue in random_range: 
     #print('random state = ', random_statevalue)
     X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, output_matrix.Y3, test_size=para.TEST_SIZE, random_state=random_statevalue)
 # change it to multiple features for polyno
@@ -153,13 +159,25 @@ for random_statevalue in range(41,42):
 
 
 # cvscoremeanlistFinal = cvscoremeanlist[1:]
-output_matrix.clfscorelistFinal = clfscorelist[1:]
+
+# seed number for random state 
+# if flag.random_state_iteration == 1:
 output_matrix.predict3D_Final = predict3D[:,:,1:]
+output_matrix.clfscorelistFinal = clfscorelist[1:]
+# elif flag.random_state_iteration == 2:
+#     output_matrix.predict3D_Final = predict3D
+#     output_matrix.clfscorelistFinal = clfscorelist
+
+
+
+
 # cvscoremeandict = pd.Series(cvscoremeanlistFinal,index=np.arange(0,42,1))
     
   
     
 # cvscoremeanlistFinal.shape
+
+para.TEST_SIZE_PERCENT = int(para.TEST_SIZE*100)
 
 
 
@@ -189,23 +207,14 @@ output_matrix.predict3D_Final = predict3D[:,:,1:]
 
 
 
- 
-
-
-
-
-
-
-
-
 
 textplot(para, para.each_folder_para_png)
 add_slide_ze(para.each_folder_para_png,para.total_filename_pptx)
 textplot(flag, para.each_folder_flag_png)
 add_slide_ze(para.each_folder_flag_png,para.total_filename_pptx)
-# para.each_folder_polynum_png = para.dir_each_folder_name + '/polynum'+ para.each_folder_name + '.png'
-# implt7_save(output_matrix.Y_reduced,location_each = para.each_folder_PCAreduced_png)
-# add_slide_ze(para.each_folder_polynum_png,para.total_filename_pptx,left_start=0.1,top_start=1,width=9,height=1.8)
+para.each_folder_PCAreduced_png = para.dir_each_folder_name + '/PCAreduced'+ para.each_folder_name + '.png'
+implt7_save(output_matrix.Y_reduced,location_each = para.each_folder_PCAreduced_png)
+add_slide_ze(para.each_folder_PCAreduced_png,para.total_filename_pptx,left_start=0.1,top_start=1,width=9,height=1.8)
 
 
 
@@ -232,23 +241,46 @@ for i in range(len(total_intex_matrix_for_plot)):
     add_slide_ze(para.filteredimagedir1,para.total_filename_pptx,left_start=0.1,top_start=1,width=8,height=5.3) 
 
 
+# seed number for random state 
+if flag.random_state_iteration == 1:
+    fig = plt.figure()
+    plt.plot(output_matrix.clfscorelistFinal, 'b-')
+    plt.ylim([0.9, 1])
+    #plt.plot(cvscoredict, 'r-')
+    #plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
+    plt.title(para.each_folder_name)
+    plt.xlabel('random state number. Poly feature num %d PCA dimension %d' % (para.numberFeature,output_data.PCA_vector_dimension))
+    plt.ylabel('score (test size = %d percentage)' % para.TEST_SIZE_PERCENT)   #% TEST_SIZE_PERCENT %d
 
-fig = plt.figure()
-plt.plot(output_matrix.clfscorelistFinal, 'b-')
-plt.ylim([0.9, 1])
-#plt.plot(cvscoredict, 'r-')
-#plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
-plt.title(para.each_folder_name)
-plt.xlabel('random state number. Poly feature num %d ' % (para.numberFeature))
-plt.ylabel('score (test size = %d percentage)' % para.TEST_SIZE_PERCENT)   #% TEST_SIZE_PERCENT %d
+
+    plt.savefig(para.each_folder_performance_png,format='png', dpi=500)
+    plt.savefig(para.fixed_folder_performance_png,format='png', dpi=500)
+    plt.legend(['averaged CV score'], loc=4) # 
+    plt.show()
+    plt.close()    
+     
+    add_slide_ze(para.fixed_folder_performance_png,para.total_filename_pptx)
+
+elif flag.random_state_iteration == 2:
+    fig = plt.figure()
+    plt.plot(randome_state_temp,output_matrix.clfscorelistFinal, 'bo')
+    plt.ylim([0.5, 1])
+    #plt.plot(cvscoredict, 'r-')
+    #plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
+    plt.title(para.each_folder_name)
+    plt.xlabel('random state number. Poly feature num %d PCA dimension %d' % (para.numberFeature,output_data.PCA_vector_dimension))
+    plt.ylabel('score (test size = %d percentage)' % para.TEST_SIZE_PERCENT)   #% TEST_SIZE_PERCENT %d
 
 
-plt.savefig(para.each_folder_performance_png,format='png', dpi=500)
-plt.savefig(para.fixed_folder_performance_png,format='png', dpi=500)
-plt.legend(['averaged CV score'], loc=4) # 
-plt.show()
-plt.close()    
- 
-add_slide_ze(para.fixed_folder_performance_png,para.total_filename_pptx)
+    plt.savefig(para.each_folder_performance_png,format='png', dpi=500)
+    plt.savefig(para.fixed_folder_performance_png,format='png', dpi=500)
+    plt.legend(['averaged CV score'], loc=4) # 
+    plt.show()
+    plt.close()    
+     
+    add_slide_ze(para.fixed_folder_performance_png,para.total_filename_pptx)
+
+
+
 
 

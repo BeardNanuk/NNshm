@@ -1,0 +1,64 @@
+#! /usr/bin/python
+
+
+
+
+
+address_output_matrix = para.rootoutdir + 'output_matrix.pickle'
+
+if (flag.making_data == 1): 
+    address_poly_formal_just_matrix_and_parameters = my_python_functions_directory + 'poly_formal_just_matrix_and_parameters'
+    exec(open(address_poly_formal_just_matrix_and_parameters).read())     
+else: 
+    with open(address_output_matrix, 'rb') as handle:
+        output_matrix = pickle.load(handle)
+    
+
+
+
+
+output_data.MAXVALUE_IMAGE_ALL = output_matrix.imagefinal2DLong.max().max()
+
+
+from sklearn.decomposition import PCA
+
+
+pca = PCA()
+pca.fit(output_matrix.imagefinal2DLong)
+cumsum = np.cumsum(pca.explained_variance_ratio_)
+output_data.PCA_vector_dimension = np.argmax(cumsum >= para.tholdPCA) + 1
+
+print('Selected principal space dimensions = ', output_data.PCA_vector_dimension)
+
+pca = PCA(n_components=output_data.PCA_vector_dimension)
+output_matrix.Y_reduced = pca.fit_transform(output_matrix.imagefinal2DLong)
+
+pca.n_components_
+print('explained_variance_ratio', np.sum(pca.explained_variance_ratio_))
+
+# reconstructed PCA-compressed images
+output_matrix.Y_recovered = pca.inverse_transform(output_matrix.Y_reduced)
+
+print('shape of reduced all image data', output_matrix.Y_reduced.shape)
+print('shape of reduced all recovered image data',output_matrix.Y_recovered.shape)
+
+implt(output_matrix.Y_reduced)
+
+
+# save images as 2D long matrix, X, Y in txt files
+# file_nametxt ='iput/matrix2DLong%04d.txt' % (para.thold*1000)
+# file_nametxtx ='iput/mx%04d.txt' % (para.thold*1000)
+# file_nametxty ='iput/my%04d.txt' % (para.thold*1000)
+
+# with open(file_nametxt,'wb') as f:
+#     np.savetxt(file_nametxt,imagefinal2DLong)
+# with open(file_nametxtx,'wb') as f:
+#     np.savetxt(file_nametxtx,X)
+# with open(file_nametxty,'wb') as f:
+#     np.savetxt(file_nametxty,Y)
+
+
+totalIndex = 0 # set to zero
+
+
+

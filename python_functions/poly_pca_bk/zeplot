@@ -12,11 +12,7 @@ def implt(image,title_name=None,save_path = None, flag_save = None):
     plt.close()
     plt.imshow(ndimage.rotate(image,90))
     plt.colorbar()
-    if title_name is None:  
-        plt.title("Original", fontsize=14)
-    else:
-        plt.title(title_name, fontsize=14)  
-
+    plt.title("Original", fontsize=16)
     if save_path is None:
        save_path = ''
     plt.show()
@@ -226,69 +222,6 @@ def predict_plot(model_name,X_test,Y_test,Y_predict,filename,rs_state):
     plt.show()
     plt.close()  
 
-def text_images_plot(filename=None,struct_variable=None,image1=None,image2=None,image3=None):
-
-    attributes = [a for a in dir(struct_variable)
-                  if not (a.startswith('__') and a.endswith('__'))
-                  and not (a == 'kernel')
-                  and not (a == 'recovered')]
-
-    top_subplot = 1.35
-    height_subplot = 0.42
-    fig = plt.figure(figsize=(10, 9))
-    #fig.suptitle('bold figure suptitle', fontsize=14, fontweight='bold')
-
-    ax = fig.add_subplot(221)
-    fig.subplots_adjust(top=top_subplot)
-    ax.set_title(str(struct_variable.name))
-
-    ax.set_xlabel('xlabel')
-    ax.set_ylabel('ylabel')
-
-    spc = 1
-
-    for i in range(len(attributes)):
-        offset = spc * (i)
-        str_temp = attributes[i] + ' = ' + str((getattr(struct_variable, attributes[i])))
-        #str_temp = attributes[i] + ' = ' + str("%.5f" % (getattr(struct_variable, attributes[i])))
-        ###ax.text(0.3, 9-offset,str_temp,wrap=True,fontsize=9)
-        ax.text(0.3, 9-offset,textwrap.fill(str_temp, 60),fontsize=7)
-
-
-    ax.axis([0, 10, 0, 10])
-    #plt.axis('off')
-    
-
-    ax = fig.add_subplot(222)
-    fig.subplots_adjust(top=top_subplot)
-    plt.imshow(ndimage.rotate(image1,90))
-    ax.set_title(str(struct_variable.title_name_original))
-
-
-    ax = fig.add_subplot(223)
-    fig.subplots_adjust(top=top_subplot-height_subplot)
-    plt.imshow(ndimage.rotate(image2,90))
-    ax.set_title(str(struct_variable.title_name_compressed))
-
-
-    ax = fig.add_subplot(224)
-    fig.subplots_adjust(top=top_subplot-height_subplot)
-    plt.imshow(ndimage.rotate(image3,90))
-    ax.set_title(str(struct_variable.title_name_predicted))
-
-
-
-
-
-
-    plt.savefig(filename,format='png', dpi=500)
-    #plt.show()
-    #plt.close()  
-
-
-
-
-
 
 def add_slide_ze(img_path,filename_pptx,left_start=None,top_start=None,width=None,height=None):
 
@@ -324,19 +257,3 @@ def add_slide_ze(img_path,filename_pptx,left_start=None,top_start=None,width=Non
     prs.save(filename_pptx)
 
 
-
-def smoothing(tempdf,kernel,thold,Maxvalue):
-# for smoothing RTM images
-    # import cv2
-    tempdfabs = abs(tempdf)
-    filter_abs = cv2.filter2D(tempdfabs,-1,kernel)
-    filter_abs_temp = filter_abs
-    maxfilter_abs = filter_abs.max().max()
-    # if (rect_array_x[ixx]*1000 < 3) | (rect_array_x[iyy]*1000 < 3):
-    #     filter_abs_temp[filter_abs < para.Mixed_Amplitude_Ratio*para.thold*(para.Maxvalue)] = 0
-    # else: 
-    filter_abs_temp[filter_abs < thold*(Maxvalue)] = 0
-
-    filter_abs_temp[:,:130] = 0
-    
-    return filter_abs_temp,maxfilter_abs    

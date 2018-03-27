@@ -7,8 +7,7 @@ from sklearn.preprocessing import PolynomialFeatures
 
 
 # select the first three attributes of the thresholded image: area, width, length 
-output_matrix.Y3 = output_matrix.Y[:,para.feature_star:para.feature_end]
-
+output_matrix.Y3 = output_matrix.Y_reduced
 
 # backup X, Y3; just in case!
 output_matrix.Xtemp = output_matrix.X
@@ -36,21 +35,11 @@ def NNpredcheck(x,y,model):
 
 ######## with open(outputfilename, "w") as f:
 ########     f.write(' ')
-            # para.TEST_SIZE = 0.1
+para.TEST_SIZE = 0.1
 
-if flag.data_spit==1:
-    # just extract the slip dimensions
-    X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, output_matrix.Y3, test_size=para.TEST_SIZE, random_state=0)
-elif flag.data_spit ==2: 
-    X_train = Xpoly
-    Y3_train = output_matrix.Y3
-    X_test = 
-
-
-
+# just extract the slip dimensions
+X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, output_matrix.Y3, test_size=para.TEST_SIZE, random_state=0)
 predict3D = np.zeros(Y3_test.shape)
-
-
 
 
 ########################################## ppt slide with full address  ########################
@@ -62,7 +51,7 @@ para.fixed_folder_performance_png = para.rootoutdir +  para.fixed_folder_name + 
 
 para.each_folder_flag_png = para.dir_each_folder_name + '/flag'+ para.each_folder_name + '.png'
 
-### output files into pictures or PPT slides - first slide
+### output files into pictures or PPT slides
  
 prs = Presentation()
 title_slide_layout = prs.slide_layouts[0]
@@ -70,16 +59,14 @@ slide = prs.slides.add_slide(title_slide_layout)
 title = slide.shapes.title
 subtitle = slide.placeholders[1]
 
-title.text = "Machine learning for damage width and length - polynomial feature selection"
+title.text = "Machine learning for damage width and length to PCA prediction"
 subtitle.text = para.each_folder_name
 
 prs.save(para.total_filename_pptx)
 
 
 
-for random_statevalue in range(41,42): 
-
-# for random_statevalue in range(rs_end): 
+for random_statevalue in range(rs_end): 
     #print('random state = ', random_statevalue)
     X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, output_matrix.Y3, test_size=para.TEST_SIZE, random_state=random_statevalue)
 # change it to multiple features for polyno
@@ -161,6 +148,8 @@ output_matrix.predict3D_Final = predict3D[:,:,1:]
     
 # cvscoremeanlistFinal.shape
 
+para.TEST_SIZE_PERCENT = int(para.TEST_SIZE*100)
+
 
 
 
@@ -203,9 +192,9 @@ textplot(para, para.each_folder_para_png)
 add_slide_ze(para.each_folder_para_png,para.total_filename_pptx)
 textplot(flag, para.each_folder_flag_png)
 add_slide_ze(para.each_folder_flag_png,para.total_filename_pptx)
-# para.each_folder_polynum_png = para.dir_each_folder_name + '/polynum'+ para.each_folder_name + '.png'
-# implt7_save(output_matrix.Y_reduced,location_each = para.each_folder_PCAreduced_png)
-# add_slide_ze(para.each_folder_polynum_png,para.total_filename_pptx,left_start=0.1,top_start=1,width=9,height=1.8)
+para.each_folder_PCAreduced_png = para.dir_each_folder_name + '/PCAreduced'+ para.each_folder_name + '.png'
+implt7_save(output_matrix.Y_reduced,location_each = para.each_folder_PCAreduced_png)
+add_slide_ze(para.each_folder_PCAreduced_png,para.total_filename_pptx,left_start=0.1,top_start=1,width=9,height=1.8)
 
 
 
@@ -239,7 +228,7 @@ plt.ylim([0.9, 1])
 #plt.plot(cvscoredict, 'r-')
 #plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
 plt.title(para.each_folder_name)
-plt.xlabel('random state number. Poly feature num %d ' % (para.numberFeature))
+plt.xlabel('random state number. Poly feature num %d PCA dimension %d' % (para.numberFeature,output_data.PCA_vector_dimension))
 plt.ylabel('score (test size = %d percentage)' % para.TEST_SIZE_PERCENT)   #% TEST_SIZE_PERCENT %d
 
 

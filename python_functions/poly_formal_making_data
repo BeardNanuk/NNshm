@@ -1,102 +1,64 @@
 #! /usr/bin/python
 
 
-###########################################
-# preparing 6 feature data and 2D long/ 3D image
-
-nnum = 401 
-
-kernelx = 15
-kernely = 15
-kernaltotal = kernelx * kernely
-
-kernel = np.ones((kernelx,kernely),np.float32)/kernaltotal
 
 
 
+address_output_matrix = para.rootoutdir + 'output_matrix.pickle'
 
-df = pd.read_csv('sumValuesThrhPer20.csv')
-dfXtemp = df[['x (mm)','y (mm)']]
+if (flag.making_data == 1): 
+    address_poly_formal_just_matrix_and_parameters = my_python_functions_directory + 'poly_formal_just_matrix_and_parameters'
+    exec(open(address_poly_formal_just_matrix_and_parameters).read())     
+else: 
+    with open(address_output_matrix, 'rb') as handle:
+        output_matrix = pickle.load(handle)
+    
 
-X = np.zeros((1,2))
-Y = np.zeros((1,6))
-
-image3D = np.zeros((401,401))
-image2DLong = np.zeros(((401*401),1))
 
 
-for ixx in xrange: #range(2,10+1,4):#
-    for iyy in yrange: # range(2,6+1,4):#
-        rect_ixx = rect_array_x[ixx]
-        rect_iyy = rect_array_y[iyy]
 
-        totalIndex += 1 
-        Dxmm = int(round(2*rect_ixx*1e3-1))    
-        Dymm = int(round(2*rect_iyy*1e3-1))
+output_data.MAXVALUE_IMAGE_ALL = output_matrix.imagefinal2DLong.max().max()
 
-        parafilename = '/home/j2/Desktop/PythonTry/MLshm/MLRTMwithExperiment/rectx%03dy%03d/iter00000/bnzlcc.csv' % (Dxmm,Dymm)
-        tempdf = pd.read_csv(parafilename,header=None)
 
-# opencv filtering
-        tempdfabs = abs(tempdf.values)
-        filter_abs = cv2.filter2D(tempdfabs,-1,kernel)
-        filter_abs_temp = filter_abs
-        maxfilter_abs = filter_abs.max().max()
-        filter_abs_temp[filter_abs < thold*(Maxvalue)] = 0
-        filter_abs_temp[:,:130] = 0
-        
-        
-# [first D,second D,number of data] data stacking       
-        image3D = np.dstack((image3D, filter_abs_temp)) 
+            # from sklearn.decomposition import PCA
 
-        if flag_plot_gene == 1: 
-            imagfilename = '/home/j2/Desktop/PythonTry/MLshm/oput/poly/feature_star%dthold%03d/filter%d.png' % (feature_star,(thold*100),totalIndex)
-            fig = plt.figure()
-            
-            plt.imshow(ndimage.rotate(filter_abs_temp,90))
 
-            plt.title('Dx = %d mm   Dy= %d mm' % (Dxmm,Dymm))
-            plt.savefig(imagfilename,format='png', dpi=300)
-            #plt.show()
-            plt.close()
+            # pca = PCA()
+            # pca.fit(output_matrix.imagefinal2DLong)
+            # cumsum = np.cumsum(pca.explained_variance_ratio_)
+            # output_data.PCA_vector_dimension = np.argmax(cumsum >= para.tholdPCA) + 1
 
-        LL = np.zeros([nnum,nnum])
-        #LL[filter_abs > thold*maxfilter_abs] = 1
-        LL[filter_abs > thold*(Maxvalue)] = 1
+            # print('Selected principal space dimensions = ', output_data.PCA_vector_dimension)
 
-        P_area_num=LL.sum().sum()
-        P_width = np.sum(LL,axis=0).max()
-        P_length = np.sum(LL,axis=1).max()
-        Pxy = unravel_index(filter_abs_temp.argmax(), filter_abs_temp.shape)  
-        onerow = np.array([P_area_num,P_width,P_length,Pxy[0],Pxy[1],maxfilter_abs]).reshape((1,6))
-        onerowX = np.array([Dxmm,Dymm]).reshape((1,2))
-        X = np.append(X,onerowX,axis=0)
-        Y = np.append(Y,onerow,axis=0)
+            # pca = PCA(n_components=output_data.PCA_vector_dimension)
+            # output_matrix.Y_reduced = pca.fit_transform(output_matrix.imagefinal2DLong)
 
-# generate X (2 width/length), Y (3 features)
-Yfinal = Y[1:,:]
-Xfinal = X[1:,:]
-X = Xfinal
-Y = Yfinal
+            # pca.n_components_
+            # print('explained_variance_ratio', np.sum(pca.explained_variance_ratio_))
 
-# imagefinal2DLong 
-imagefinal3D = image3D[:,:,1:]
-imagefinal2DLong = np.transpose(imagefinal3D.reshape(160801,121))
- 
+            # # reconstructed PCA-compressed images
+            # output_matrix.Y_recovered = pca.inverse_transform(output_matrix.Y_reduced)
+
+            # print('shape of reduced all image data', output_matrix.Y_reduced.shape)
+            # print('shape of reduced all recovered image data',output_matrix.Y_recovered.shape)
+
+            # implt(output_matrix.Y_reduced)
+
+
 # save images as 2D long matrix, X, Y in txt files
-file_nametxt ='iput/matrix2DLong%04d.txt' % (thold*1000)
-file_nametxtx ='iput/mx%04d.txt' % (thold*1000)
-file_nametxty ='iput/my%04d.txt' % (thold*1000)
+# file_nametxt ='iput/matrix2DLong%04d.txt' % (para.thold*1000)
+# file_nametxtx ='iput/mx%04d.txt' % (para.thold*1000)
+# file_nametxty ='iput/my%04d.txt' % (para.thold*1000)
 
-with open(file_nametxt,'wb') as f:
-    np.savetxt(file_nametxt,imagefinal2DLong)
-with open(file_nametxtx,'wb') as f:
-    np.savetxt(file_nametxtx,X)
-with open(file_nametxty,'wb') as f:
-    np.savetxt(file_nametxty,Y)
- 
+# with open(file_nametxt,'wb') as f:
+#     np.savetxt(file_nametxt,imagefinal2DLong)
+# with open(file_nametxtx,'wb') as f:
+#     np.savetxt(file_nametxtx,X)
+# with open(file_nametxty,'wb') as f:
+#     np.savetxt(file_nametxty,Y)
 
 
+totalIndex = 0 # set to zero
 
 
 

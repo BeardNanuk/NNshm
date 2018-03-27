@@ -1,0 +1,110 @@
+#! /usr/bin/python
+
+
+###########################################
+# preparing 6 feature data and 2D long/ 3D image
+
+
+
+df = pd.read_csv('sumValuesThrhPer20.csv')
+dfXtemp = df[['x (mm)','y (mm)']]
+
+X = np.zeros((1,2))
+Y = np.zeros((1,para.number_Y_parameter))
+
+output_matrix.image3D = np.zeros((401,401))
+output_matrix.image2DLong = np.zeros(((401*401),1))
+
+
+
+folder_create(para.filteredimagedir)
+
+
+# training data 
+for ixx in xrange: #range(2,10+1,4):#
+    for iyy in yrange: # range(2,6+1,4):#
+        rect_ixx = rect_array_x[ixx]
+        rect_iyy = rect_array_y[iyy]
+
+        totalIndex += 1 
+        Dxmm = int(round(2*rect_ixx*1e3-1))    
+        Dymm = int(round(2*rect_iyy*1e3-1))
+
+        parafilename = '/home/j2/Desktop/PythonTry/MLshm/Data/LSRTMv60MLv1/MLRTMwithExperiment/rectx%03dy%03d/iter00000/bnzlcc.mat' % (Dxmm,Dymm)
+        #tempdf = pd.read_csv(parafilename,header=None) # load csv 
+        mat_contents = scipy.io.loadmat(parafilename)  # load mat
+        tempdf = mat_contents['NZLCCsum'] 
+
+
+# opencv filtering
+        
+        
+        filter_abs_temp, maxfilter_abs = smoothing(tempdf,para.kernel,para.thold,para.Maxvalue)
+
+        # para.Mixed_Amplitude_Ratio = 1
+        # tempdfabs = abs(tempdf)
+        # filter_abs = cv2.filter2D(tempdfabs,-1,para.kernel)
+        # filter_abs_temp = filter_abs
+        # maxfilter_abs = filter_abs.max().max()
+        # # if (rect_array_x[ixx]*1000 < 3) | (rect_array_x[iyy]*1000 < 3):
+        # #     filter_abs_temp[filter_abs < para.Mixed_Amplitude_Ratio*para.thold*(para.Maxvalue)] = 0
+        # # else: 
+        # filter_abs_temp[filter_abs < para.thold*(para.Maxvalue)] = 0
+
+        # filter_abs_temp[:,:130] = 0
+        
+        
+# [first D,second D,number of data] data stacking       
+        output_matrix.image3D = np.dstack((output_matrix.image3D, filter_abs_temp)) 
+
+        if flag.plot_gene == 1: 
+            imagfilename = para.filteredimagedir + ('/imagetotalindex%d.png' % totalIndex)
+            #imagfilename = '/home/j2/Desktop/PythonTry/MLshm/Data/LSRTMv60MLv1/oput/FilteredImages/thold%03dfilter%d.png' % ((para.thold*100),totalIndex)
+            fig = plt.figure()
+            
+            plt.imshow(ndimage.rotate(filter_abs_temp,90))
+
+            plt.title('Dx = %d mm   Dy= %d mm' % (Dxmm,Dymm))
+            plt.savefig(imagfilename,format='png', dpi=300)
+            #plt.show()
+            plt.close()
+
+        LL = np.zeros([para.nnum,para.nnum])
+
+
+
+        # if (rect_array_x[ixx]*1000 < 3) | (rect_array_x[iyy]*1000 < 3):
+        #     LL[filter_abs_temp > para.Mixed_Amplitude_Ratio*para.thold*(para.Maxvalue)] = 1
+        # else: 
+        LL[filter_abs_temp > para.thold*(para.Maxvalue)] = 1
+        
+        P_area_num=LL.sum().sum()
+        P_total_amplitude = filter_abs_temp.sum().sum()
+        P_width = np.sum(LL,axis=0).max()
+        P_length = np.sum(LL,axis=1).max()
+        Pxy = unravel_index(filter_abs_temp.argmax(), filter_abs_temp.shape)  
+        onerow = np.array([P_area_num,P_width,P_length,P_total_amplitude,Pxy[0],Pxy[1],maxfilter_abs]).reshape((1,para.number_Y_parameter))
+        onerowX = np.array([Dxmm,Dymm]).reshape((1,2))
+        X = np.append(X,onerowX,axis=0)
+        Y = np.append(Y,onerow,axis=0)
+
+
+# generate X (2 width/length), Y (3 features)
+Yfinal = Y[1:,:]
+Xfinal = X[1:,:]
+X = Xfinal # width and length
+Y = Yfinal # paramters defined by myself
+
+
+output_matrix.X = X
+output_matrix.Y = Y
+
+# imagefinal2DLong 
+output_matrix.imagefinal3D = output_matrix.image3D[:,:,1:]
+output_matrix.imagefinal2DLong = np.transpose(output_matrix.imagefinal3D.reshape(160801,totalIndex))
+
+
+# save matrix data 
+with open(address_output_matrix, 'wb') as handle:
+    pickle.dump(output_matrix, handle, protocol=pickle.HIGHEST_PROTOCOL)
+

@@ -1,0 +1,114 @@
+#! /usr/bin/python
+
+
+matrix_for_naming = ['tholdpercent','tholdPCApermill'];
+
+para.feature_star = 0
+para.feature_end = 4 # not inclusive
+
+############ these two are important - (1,1) for filtered image, and dump pickle, (2,2) for other ML
+# flag.plot_gene = 2
+# flag.making_data = 2 # 1 making data from original mat files/2 importing data made already
+flag.output_screen = 2
+
+para.xlennum=42
+para.ylennum=42
+
+xrange = range(2,para.xlennum+1,4)
+yrange = range(2,para.ylennum+1,4)
+rect_ixx = np.zeros(len(xrange))
+rect_iyy = np.zeros(len(yrange))
+
+
+#image3D = []
+
+clfscorelist = np.zeros(1)
+cvscorelist = np.zeros(1)
+
+#tholdmatrix = [0.02]
+#tholdmatrix = [0.02,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.98]
+#tholdmatrix = [0.02,0.05,0.1,0.2,0.3,0.4]
+#tholdmatrix = [0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045,0.05]
+# tholdmatrix = [0.015]
+
+
+cvscoremeanlist = np.zeros(1)
+
+#model_name = 
+para.numberFeature  = 5
+para.number_Y_parameter = 7
+totalIndex = 0 
+
+para.rootoutdir = '/home/j2/Desktop/PythonTry/MLshm/Data/LSRTMv60MLv1/oput/pca/'
+
+para.model_name = 'poly'
+
+
+#### for PCA 
+para.tholdPCA = para.PCA_variance_matrix[kkk]
+
+para.tholdPCApermill = round(para.tholdPCA*1000)
+
+flag.hyper_parameter = 2
+
+if flag.hyper_parameter == 1:
+	para.hyper_parameter = para.numberFeature
+	para.folder_name = para.model_name
+	para.folder_name_hyper_parameter = '/' + para.model_name + '%d' % para.hyper_parameter
+	para.directory =  para.rootoutdir
+
+#directory = '/home/j2/Desktop/PythonTry/MLshm/oput/poly/poly%d/Matrix3Dthold%04d' % (numberFeature,thold*100)
+
+
+
+
+folder_create(para.rootoutdir)
+
+
+para.nnum = 401 
+
+para.kernelx = 15
+para.kernely = 15
+para.kernaltotal = para.kernelx * para.kernely
+
+para.kernel = np.ones((para.kernelx,para.kernely),np.float32)/para.kernaltotal
+
+para.thold = 0.03
+para.tholdpercent = round(para.thold*100)
+para.Maxvalue = 0.75108474521201107
+
+para.output_rs_matrix = [0]
+
+# try:
+#     os.makedirs(directory)
+# except OSError as e:
+#     if e.errno != errno.EEXIST:
+#         raise
+
+
+################# save data all
+## setup folder name containing all changing variables 
+para.each_folder_name = '' 
+para.fixed_folder_name = ''
+
+for i in range(len(matrix_for_naming)):
+    vn = matrix_for_naming[i]
+    #print(vn)
+    vv = getattr(para, vn)
+    #foldername
+    para.each_folder_name = para.each_folder_name + str(vn) + str(vv)
+    # create the folder name 
+    if i==0: 
+    	para.fixed_folder_name = para.fixed_folder_name + str(vn) + str(vv)
+    #print(vv)
+    #print(vn,vv)
+    
+para.dir_each_folder_name= para.rootoutdir +  para.fixed_folder_name + '/' + para.each_folder_name
+
+para.filteredimagedir  = para.rootoutdir +  para.fixed_folder_name + '/FilteredImages/'
+
+
+folder_create(para.dir_each_folder_name)
+
+
+

@@ -1,0 +1,176 @@
+#! /usr/bin/python
+
+### sklearn --- linear_model 
+
+from sklearn import linear_model
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import neighbors
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_validate
+
+flag_output_screen = 2
+
+# select the first three attributes of the thresholded image: area, width, length 
+Y3 = Y[:,feature_star:feature_end]
+
+# backup X, Y3; just in case!
+Xtemp = X
+Y3temp = Y3
+
+#prepare the polynomical features 
+poly = PolynomialFeatures(degree=numberFeature)
+Xpoly = poly.fit_transform(X)
+
+rs_end = 42
+cvscoremeanlist = np.zeros(1)
+
+
+def NNpredcheck(x,y,model):
+    Yt1 = model.predict(np.array([[x, y]]))
+    return Yt1
+
+# #text35 = 'output (3 5): ' + np.array_str(NNpredcheck(3,5,clf)) + '\n'
+# headline = 'feature_star %d thold %d percent  \n' % (feature_star,thold*100)
+# #NNpredcheck(3,5,clf)
+
+#outputfilename ='oput/poly/poly%d/NN3paraRDstate.csv' % (numberFeature)
+
+outputfilename = directory + '/NN3paraRDstate.csv'
+
+with open(outputfilename, "w") as f:
+    f.write(' ')
+#     f.write(headline)
+#     f.write(textclfscore)
+#     f.write(clfscorestr)
+
+TEST_SIZE = 0.1
+
+for random_statevalue in range(rs_end): 
+    #print('random state = ', random_statevalue)
+    X_train, X_test, Y3_train, Y3_test = train_test_split(Xpoly, Y3, test_size=TEST_SIZE, random_state=random_statevalue)
+# change it to multiple features for polyno
+
+#     # ordinary least squares
+#     clf = linear_model.LinearRegression()
+#     # univariate
+#     clf.fit(X_train,Y3_train)
+#     clf.score(X_test, Y3_test) 
+    ###### linear regression 
+    #clf = linear_model.LinearRegression()
+    ##### KNN 
+    clf = neighbors.KNeighborsClassifier(n_neighbors=number_neighbors)
+    clf.fit(X_train,Y3_train)
+    clf.score(X_test, Y3_test) 
+
+    
+
+    #    f.write(text35)
+    if flag_output_screen == 1:
+        
+        # fitting for printing on the screen 
+        clf.fit(X_train,Y3_train)
+        clfscore = clf.score(X_test, Y3_test) 
+          
+        textclfscore = ' clf score : ' + np.array_str(clfscore) + '\n'
+        clfscorestr = np.array_str(clfscore) + '\n'
+
+
+        print(textclfscore)
+        f= open(outputfilename,"a+")
+        str1 =  '\n'+'random state =' + str(random_statevalue) +'\n'
+        f.write(str1)      
+        #indexnumber = 1
+
+        for irad in range(2):
+            indexnumber = irad
+            #print('random state =', random_statevalue)
+      
+            str1 =  'width and length = ' + np.array_str(X_test[indexnumber,:].reshape(1,-1)) +'\n'
+            f.write(str1)
+            print('width and length = ', X_test[indexnumber,:].reshape(1,-1) )
+            str1 =  'predicted = ' + np.array_str(clf.predict(X_test[indexnumber,:].reshape(1,-1))) +'\n'
+            f.write(str1)
+            print('predicted = ', clf.predict(X_test[indexnumber,:].reshape(1,-1) ))
+            str1 =  'labeled = ' + np.array_str(Y3_test[indexnumber,:]) +'\n'
+            f.write(str1)
+            print('labeled = ', Y3_test[indexnumber,:])
+            str1 = 'Ratio = ' + np.array_str(clf.predict(X_test[indexnumber,:].reshape(1,-1) )/Y3_test[indexnumber,:]) + '\n'
+            f.write(str1)
+            print('Ratio = ', clf.predict(X_test[indexnumber,:].reshape(1,-1) )/Y3_test[indexnumber,:]) 
+
+    
+    #pmodel = linear_model.LinearRegression()
+
+    pmodel =neighbors.KNeighborsClassifier(n_neighbors=number_neighbors)
+    
+
+
+    # ~~~~~~~~does not work - with knn 
+    #cvscores = cross_val_score(pmodel, Xpoly, Y3, cv=5)
+
+    #cv = ShuffleSplit(n_splits=121, test_size=TEST_SIZE, random_state=random_statevalue)
+    #cvscores = cross_validate(pmodel, Xpoly, Y3, cv=cv)
+
+
+    #cvscores = cross_val_score(clf, X, Y3, cv=60)
+    # ~~~~~~~~
+
+
+    if flag_output_screen == 1:
+        print('CV score are', cvscores)
+        print('Mean of cv_scores are', cvscores.mean())
+        str1 = 'Mean of cv_scores are ' + str(cvscores.mean()) + '\n'
+        f.write(str1)
+        f.close()
+    
+    clfscorelist = np.append(clfscorelist,clf.score(X_test, Y3_test)) 
+    cvscorelist = np.append(cvscorelist,cvscores.mean()) 
+
+    cvscoremeanlist = np.append(cvscoremeanlist,cvscores.mean()) 
+
+cvscoremeanlistFinal = cvscoremeanlist[1:]
+
+cvscoremeandict = pd.Series(cvscoremeanlistFinal,index=np.arange(0,42,1))
+    
+    
+    
+# cvscoremeanlistFinal.shape
+
+TEST_SIZE_PERCENT = int(TEST_SIZE*100)
+
+#imagfilename = '/home/j2/Desktop/PythonTry/MLshm/oput/poly/poly%d/RSallStatesplitcv%dper.png' % (numberFeature,TEST_SIZE_PERCENT)
+imagfilename = directory + '/RSallStatesplitcv%dper.png' % TEST_SIZE_PERCENT
+
+#'/home/j2/Desktop/PythonTry/MLshm/oput/poly/poly%d/RSallStatesplitcv%dper.png' % (numberFeature,TEST_SIZE_PERCENT)
+
+
+# fig = plt.figure()
+# plt.plot(cvscoremeandict, 'b-')
+# plt.ylim([0.8, 1])
+# #plt.plot(cvscoredict, 'r-')
+# plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
+# plt.xlabel('various random state number, poly feature num %d' % numberFeature)
+# #plt.ylabel('cv mean score for %d %' % numberFeature) # int(TEST_SIZE*100)
+
+# plt.ylabel('cv mean score for')   #% TEST_SIZE_PERCENT %d
+
+# plt.savefig(imagfilename,format='png', dpi=300)
+# plt.legend(['averaged CV score'], loc=4) # 
+# plt.show()
+# plt.close()    
+    
+
+
+fig = plt.figure()
+plt.plot(cvscoremeandict, 'b-')
+plt.ylim([0.8, 1])
+#plt.plot(cvscoredict, 'r-')
+#plt.title('Feasure start %d, end %d, threshold %d' % (feature_star,feature_end, thold))
+plt.title('Cross-validation scores for various random states')
+plt.xlabel('random state number. Poly feature num %d' % numberFeature)
+plt.ylabel('cv mean score (test size = %d percentage)' % TEST_SIZE_PERCENT)   #% TEST_SIZE_PERCENT %d
+
+plt.savefig(imagfilename,format='png', dpi=300)
+plt.legend(['averaged CV score'], loc=4) # 
+plt.show()
+plt.close()    
